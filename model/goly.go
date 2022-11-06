@@ -23,3 +23,25 @@ func GetGoly(id uint64) (Goly, error) {
 
 	return goly, nil
 }
+
+func CreateGoly(goly Goly) error {
+	tx := db.Create(&goly)
+	
+	return tx.Error
+}
+
+func UpdateGoly(goly Goly) error {
+	tx := db.Save(&goly)
+
+	return tx.Error
+}
+
+func DeleteGoly(id uint64) error {
+	tx := db.Unscoped().Delete(&Goly{}, id)
+
+	return tx.Error
+}
+
+func FindByGolyUrl(url string) (Goly, error) {
+	var goly Goly
+}
