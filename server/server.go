@@ -68,11 +68,48 @@ func createGoly(c *fiber.Ctx) error {
 }
 
 func updateGoly(c *fiber.Ctx) error {
+	c.Accepts("application/json")
 
+	var goly model.Goly
+
+	err := c.BodyParser(&goly)
+
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map {
+			"message": "could not parse json " + err.Error(),
+		})
+	}
+
+	err = model.UpdateGoly(goly)
+
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map {
+			"message": "could not update goly link in DB " + err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(goly)
 }
 
 func deleteGoly(c *fiber.Ctx) error {
-	
+	id, err := strconv.ParseUint(c.Params("id"), 10, 24)
+
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map {
+			"message": "could not parse id from url " + err.Error(),
+		})
+	}
+
+	err = model.DeleteGoly(id)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map {
+			"message": "could not delete from db " + err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map {
+		"message": "goly deleted.",
+	})
 }
 
 func SetupAndListen() {
