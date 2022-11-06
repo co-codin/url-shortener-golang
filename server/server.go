@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/co-codin/model"
@@ -8,6 +9,29 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 )
+
+func redirect(c *fiber.Ctx) error {
+	golyUrl := c.Params("redirect")
+
+	goly, err := model.FindByGolyUrl(golyUrl)
+
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map {
+			"message": "could not find goly in DB " + err.Error(),
+		})
+	}
+
+	goly.Clicked += 1
+
+	err = model.UpdateGoly(goly)
+
+	if err != nil {
+		fmt.Printf("error updating: %v\n", err)
+	}
+
+
+	return c.Redirect(goly.Redirect, fiber.StatusTemporaryRedirect)
+}
 
 func getAllRedirects(ctx *fiber.Ctx) error {
 	golies, err := model.GetAllGolies()
@@ -120,8 +144,10 @@ func SetupAndListen() {
 		AllowHeaders: "Origin, Content-Type",
 	}))
 
+	router.Get("/r/:redirect", redirect)
+
 	router.Get("/goly", getAllRedirects)
-	router.Get("/goly/:id", getGoly))
+	router.Get("/goly/:id", getGoly)
 	router.Post("/goly", createGoly)
 	router.Patch("/goly", updateGoly)
 	router.Delete("/goly/:id", deleteGoly)
