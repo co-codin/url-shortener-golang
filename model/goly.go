@@ -44,4 +44,9 @@ func DeleteGoly(id uint64) error {
 
 func FindByGolyUrl(url string) (Goly, error) {
 	var goly Goly
+
+	tx := db.Where("goly = ?", url).First(&goly)
+
+	return goly, tx.Error
 }
+
